@@ -4,15 +4,15 @@
         "minimumDelayBetweenInterstitial": 60,
         "interstitial": {
             "placements": [
-                { "id": "start_level" },
-                { "id": "next_level" },
                 { "id": "retry" },
                 { "id": "menu" }
             ]
         },
         "rewarded": {
             "placements": [
-                { "id": "extra_time" }
+                { "id": "rotate_pieces" },
+                { "id": "new_pieces" },
+                { "id": "continue" }
             ]
         }
     }

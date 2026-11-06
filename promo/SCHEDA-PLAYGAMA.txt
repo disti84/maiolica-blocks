@@ -1,4 +1,4 @@
-NOME DEL GIOCO — testi e dati per il modulo di Playgama
+MAIOLICA BLOCKS — testi e dati per il modulo di Playgama
 (developer.playgama.com → nuovo gioco). I testi da incollare sono in inglese;
 le traduzioni italiane sono sotto, se il modulo le chiede.
 
@@ -6,25 +6,32 @@ le traduzioni italiane sono sotto, se il modulo le chiede.
 CAMPI OBBLIGATORI
 ────────────────────────────────────────
 Title
-<titolo>
+Maiolica Blocks
 
 Game Engine
 JavaScript / HTML5 (nessun motore; se non c'è la voce, scegli "JavaScript" o "Other")
 
 Game Archive
-build/<slug>-playgama.zip  (index.html è nella radice dello zip)
+build/maiolica-blocks-playgama.zip  (index.html è nella radice dello zip)
 
 Description  (EN)
-<2–4 frasi: ambientazione, meccanica principale, cosa c'è (livelli, booster, stelle)>
+A relaxing block puzzle dressed in hand-painted Sicilian maiolica tiles. Drag the tile
+pieces onto an 8×8 board, fill whole rows and columns to clear them, and chain clears
+into big combos. Endless play, a saved high score, and three helpful boosts: rotate
+your pieces, swap them for new ones, or continue once when you run out of room.
 
 How to play  (EN)
-<controlli mouse e touch, obiettivo, cosa fare quando si è bloccati>
+Drag one of the three pieces onto the board with the mouse or your finger.
+Fill a whole row or column to clear it; clearing several lines at once, or lines in
+consecutive moves, gives more points (combo). When all three pieces are placed you get
+three new ones. The game ends when none of the pieces fits. Stuck? Use Rotate or
+New pieces (once per game each), or continue once after the game ends.
 
 Supported Devices
 Desktop (mouse) e Mobile/Tablet (touch). Browser: Chrome, Firefox, Safari, Edge, Opera.
 
 Game Languages
-English, Italian
+English, Italian, Spanish, German, French, Portuguese, Turkish, Polish, Indonesian
 
 Distribution
 Playgama + tutti i partner (non escludere nulla, a meno che tu non abbia motivi).
@@ -40,7 +47,7 @@ Interstitial ads, Rewarded ads, Cloud saves (Bridge storage), Localization,
 Progress saving, Pause/audio handling.
 
 Category / Genre
-<categoria>  (tag: ...)
+Puzzle  (tag: block puzzle, blocks, tiles, logic, casual, relaxing, endless, high score)
 
 Media (cartella promo/)
 - cover-square-800x800.png        → copertina quadrata
@@ -48,22 +55,30 @@ Media (cartella promo/)
 - cover-landscape-1920x1080.png   → copertina orizzontale
 - screenshot-portrait-*.png       → 3 screenshot telefono (1080x1920)
 - screenshot-landscape-*.png      → 3 screenshot desktop (1920x1080)
+(da preparare)
 
 ────────────────────────────────────────
 TRADUZIONI ITALIANE
 ────────────────────────────────────────
 Descrizione
-<...>
+Un block puzzle rilassante vestito di maioliche siciliane dipinte a mano. Trascina i pezzi
+su una griglia 8×8, riempi righe e colonne intere per svuotarle e concatena le linee in
+grandi combo. Partita infinita, record salvato e tre aiuti: ruota i pezzi, cambiali con
+pezzi nuovi, oppure continua una volta quando finisce lo spazio.
 
 Come si gioca
-<...>
+Trascina uno dei tre pezzi sulla griglia con il mouse o con il dito.
+Riempi una riga o una colonna per svuotarla; più linee insieme, o linee in mosse
+consecutive, danno più punti (combo). Quando hai piazzato tutti e tre i pezzi ne arrivano
+tre nuovi. La partita finisce quando nessun pezzo entra. Bloccato? Usa Ruota o Nuovi pezzi
+(una volta per partita ciascuno), oppure continua una volta dopo il game over.
 
 ────────────────────────────────────────
 PROVENIENZA DEI MATERIALI (se ti chiedono i diritti)
 ────────────────────────────────────────
-- Codice di gioco e livelli: sviluppati per questo gioco.
-- Grafica: <...>
-- Effetti sonori: <fonte> — <licenza>
-- Musica: <fonte> — <licenza>
-- Font: <nomi> — SIL Open Font License, inclusi nel pacchetto.
+- Codice di gioco, regole e generatore dei pezzi: sviluppati per questo gioco.
+- Grafica: maioliche, icone e sfondo disegnati in SVG/CSS per questo gioco.
+- Effetti sonori: Kenney.nl "Interface Sounds" — CC0.
+- Musica: <fonte> — <licenza>  (da aggiungere)
+- Font: Lilita One, Nunito — SIL Open Font License, inclusi nel pacchetto.
 - SDK: Playgama Bridge 2.4.0.

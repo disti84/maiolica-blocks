@@ -1,34 +1,68 @@
-# paw-game-kit
+# Maiolica Blocks
 
-Template condiviso per i giochi web HTML5 di **Paw Software Entertainment** (JavaScript puro, nessun motore).
-Contiene il platform layer estratto da *Dolce Sort: Sicilian Bakery*, già testato nel sandbox Playgama,
-e un piccolo gioco demo (*Tap the Lemon*) che mostra come usarlo.
+Block puzzle HTML5 di **Paw Software Entertainment** (JavaScript puro, nessun motore), nello stile di
+*Dolce Sort: Sicilian Bakery*: cobalto, giallo limone e un muro di maioliche siciliane, tutto disegnato in SVG/CSS.
+Creato dal template `paw-game-kit` (`disti84/html5-game-template`): il platform layer è in `kit/` e non va modificato qui.
 
-## Nuovo gioco
+## Il gioco
 
-1. Su GitHub: **Use this template → Create a new repository** (es. `cannolo-merge`).
-2. Modifica `game.config.json`: `slug`, `title`, `version`, `themeColor`, font.
-3. Sostituisci i file del demo con quelli del gioco: `template.html`, `game.js`, `logic.js`, `i18n.js`, `audio/`.
-4. Aggiorna `playgama-bridge-config.json` con i tuoi posizionamenti pubblicitari.
-5. Compila la scheda in `promo/SCHEDA-PLAYGAMA.txt` e prepara copertine e screenshot.
+- Griglia 8×8, tre pezzi alla volta da trascinare sulla griglia (mouse o touch).
+- Righe e colonne piene si svuotano; più linee insieme valgono di più, linee in mosse vicine fanno **combo**.
+- Partita infinita: finisce quando nessuno dei pezzi rimasti entra. Il record viene salvato.
+- I pezzi sono maioliche siciliane (7 decori in SVG, `#t1`…`#t7` in `template.html`).
+- La partita in corso si salva a ogni mossa: dal menu si può riprendere.
 
-La cartella `kit/` non va toccata nei singoli giochi: se la migliori, fallo qui e poi copiala nei giochi.
+### Punteggio (`logic.js`)
+
+| Evento | Punti |
+|---|---|
+| Pezzo piazzato | 1 per casella |
+| Linee svuotate insieme | 10 · L · (L+1) / 2 → 1 linea 10, 2 linee 30, 3 linee 60, 4 linee 100 |
+| Combo | il bonus linee è moltiplicato per la combo (×2, ×3…) |
+| Griglia completamente vuota | +300 |
+
+La combo cresce a ogni mossa che svuota almeno una linea e si azzera dopo 3 mosse senza linee.
+
+### Generatore dei pezzi
+
+`LOGIC.dealSet(board, rnd, { sets, assist })` sceglie tre pezzi tra 39 forme (tutte le rotazioni di 14 forme base).
+È gentile all'inizio e si fa più duro col tempo (`LOGIC.difficulty`):
+
+- prime 12 serie: la serie è **sempre** piazzabile per intero, in qualche ordine (contando le linee che si svuotano);
+  poi la probabilità scende piano fino al 55%;
+- prime 30 serie: almeno un pezzo entra sempre; poi la garanzia scende fino all'85%;
+- i pezzi ingombranti (3×3, 1×5, L grande) sono rari all'inizio;
+- all'inizio spesso c'è un pezzo che chiude una linea.
+
+`assist: true` (premi "nuovi pezzi" e "continua") dà sempre una serie piazzabile.
+
+### Pubblicità
+
+| Tipo | Posizionamento | Quando |
+|---|---|---|
+| Interstitial | `retry` | "Gioca ancora" dopo il game over |
+| Interstitial | `menu` | "Menu" dopo il game over |
+| Rewarded | `rotate_pieces` | Booster *Ruota*: i pezzi della serie attuale si ruotano toccandoli. Una volta per partita. |
+| Rewarded | `new_pieces` | Booster *Nuovi pezzi*: tre pezzi nuovi che entrano. Una volta per partita. |
+| Rewarded | `continue` | Dopo il game over: svuota le due righe e le due colonne centrali e dà tre pezzi che entrano. Una volta per partita. |
+
+Il gioco è a punteggio infinito, quindi non c'è un "livello successivo": gli interstitial sono solo su riprova e menu,
+mai al primo avvio (lo garantisce il kit). Il premio arriva solo con esito `rewarded`.
 
 ## Struttura
 
 | File / cartella | Cosa contiene |
 |---|---|
-| `kit/` | Codice condiviso: `core.js` (pausa, toast), `platform.js` (Bridge, salvataggi, pubblicità), `sound.js` (audio), `i18n.js` (testi), `boot.js` (avvio). |
-| `game.config.json` | Nome, slug, versione, colore e font del gioco. |
-| `template.html` | HTML + CSS + sprite SVG. Segnaposto: `<!--FONTS-->`, `<!--BODY-->`, `/*KIT*/`, `/*I18N*/`, `/*LOGIC*/`, `/*GAME*/`. |
-| `logic.js` | Regole del gioco, solo JS puro (niente DOM): si può testare con Node. |
-| `game.js` | Interfaccia, input, livelli, uso del kit. |
-| `i18n.js` | Testi nelle varie lingue (inglese predefinito). |
-| `audio/` | Effetti e musica in MP3 (obbligatori per Playgama, vedi `audio/README.md`). |
-| `assets/` | Facoltativa: immagini o altri file, copiati così come sono nella build. |
-| `playgama-bridge-config.json` | Posizionamenti pubblicitari e intervallo minimo degli interstitial. |
-| `promo/` | Scheda per il modulo Playgama, copertine e screenshot. |
-| `vendor/package.json` | Dipendenze di terze parti: Playgama Bridge e font (fontsource). |
+| `kit/` | Codice condiviso del template (Bridge, salvataggi, pubblicità, pausa, audio, i18n). **Non modificare.** |
+| `game.config.json` | Nome, slug, versione, colore e font. |
+| `template.html` | HTML + CSS + SVG (maioliche, icone). |
+| `logic.js` | Regole, punteggio e generatore. Niente DOM: si testa con Node. |
+| `game.js` | Interfaccia, trascinamento, booster, uso del kit. |
+| `i18n.js` | Testi in 9 lingue: en (predefinita), it, es, de, fr, pt, tr, pl, id. |
+| `tests/` | Test Node di `logic.js` (regole, generatore, partite simulate). |
+| `audio/` | Effetti Kenney CC0 (vedi `audio/README.md`). La musica va aggiunta. |
+| `playgama-bridge-config.json` | Posizionamenti pubblicitari e intervallo minimo degli interstitial (60 s). |
+| `promo/` | Scheda per il modulo Playgama. |
 | `CHECKLIST-PLAYGAMA.md` | Requisiti da controllare prima di caricare. |
 
 ## Requisiti
@@ -40,7 +74,11 @@ La cartella `kit/` non va toccata nei singoli giochi: se la migliori, fallo qui 
 cd vendor && npm install && cd ..
 ```
 
-Se cambi i font in `game.config.json`, aggiungi i pacchetti `@fontsource/...` corrispondenti in `vendor/package.json`.
+## Test
+
+```bash
+node --test tests/*.test.js
+```
 
 ## Build
 
@@ -50,9 +88,9 @@ python3 build.py
 
 Produce:
 
-- `dist/` e `build/<slug>-playgama.zip` — **build per Playgama**. Lo zip è quello da caricare.
-- `build/<slug>.html` — anteprima a file unico (font da Google, niente Bridge, suoni sintetici di prova).
-- `build/<slug>-mobile.html` — la stessa anteprima, apribile sul telefono.
+- `dist/` e `build/maiolica-blocks-playgama.zip` — **build per Playgama**. Lo zip è quello da caricare.
+- `build/maiolica-blocks.html` — anteprima a file unico (font da Google, niente Bridge, suoni sintetici di prova).
+- `build/maiolica-blocks-mobile.html` — la stessa anteprima, apribile sul telefono.
 
 La build si ferma se `index.html` carica file esterni.
 
@@ -64,32 +102,12 @@ cd dist && python3 -m http.server 8000
 # http://localhost:8000/?lang=it forza la lingua
 ```
 
-## Come si usa il kit in `game.js`
+## Musica
 
-```js
-const K = window.Kit, t = K.t;
+Aggiungi `audio/music.mp3`, poi in `game.js` (opzione `sound` di `Kit.start`) metti `'music'` in `files`
+e togli `music: null`. Annota fonte e licenza in `audio/README.md` e in `promo/SCHEDA-PLAYGAMA.txt`.
 
-K.start({
-  defaults: { unlocked: 1, stars: [] },              // salvataggio iniziale
-  sound: { files: ['music', 'click', 'win'], music: 'music' },
-  onReady: showHome,                                  // mostra la prima schermata
-});                                                   // poi il kit invia game_ready
-
-K.platform.gameplayStart();                // inizio partita / ripresa
-K.platform.gameplayStop();                 // vittoria, sconfitta, menu
-K.platform.showInterstitial('next_level'); // solo nelle pause naturali
-const res = await K.platform.showRewarded('extra_time');
-if (res === 'rewarded') { /* dai il premio */ }
-
-K.save.coins += 10; K.writeSave();         // salvataggio (Bridge o localStorage)
-K.sound.play('click');                     // effetti; K.toggleSound() per il pulsante audio
-if (K.pause.is()) { /* ferma timer e animazioni */ }
-K.ui.toast(t('noAd'));
-```
-
-`K.platform.device` vale `mobile`, `tablet` o `desktop`; `K.platform.lang` è la lingua a due lettere.
-
-## Crediti del demo
+## Crediti
 
 - Effetti sonori: Kenney, "Interface Sounds" — CC0 (`audio/KENNEY-LICENSE.txt`).
 - Font: Lilita One, Nunito — SIL Open Font License.

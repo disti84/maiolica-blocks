@@ -1,9 +1,9 @@
-<title>Tap the Lemon</title>
+<title>Maiolica Blocks</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <!--FONTS-->
 <style>
-/* Demo game styles. Keep the structure (#loading, #app, screens, overlays) and restyle freely.
-   Palette and buttons come from Dolce Sort, so the Paw Software games share a family look. */
+/* Maiolica Blocks — one-screen block puzzle over a Caltagirone-style maiolica wall.
+   Palette and buttons from Dolce Sort, so the Paw Software games look like a family. */
 :root {
   --cobalt: #1d4596;
   --cobalt-deep: #12306e;
@@ -13,7 +13,10 @@
   --tile-line: #c9d6ee;
   --ink: #15264f;
   --card: #ffffff;
+  --cream: #fdf6e3;
   --red: #d7263d;
+  --cell: 40px;        /* board cell, set by game.js */
+  --tcell: 22px;       /* tray cell, set by game.js */
   --display: "Lilita One", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
   --body: "Nunito", "Segoe UI", system-ui, sans-serif;
   color-scheme: light;
@@ -25,6 +28,10 @@ body {
   background-color: var(--tile);
   background-image:
     radial-gradient(circle at 50% 50%, transparent 0 9px, var(--tile-line) 10px 11px, transparent 12px),
+    radial-gradient(circle at 0 0, transparent 0 22px, var(--tile-line) 23px 24px, transparent 25px),
+    radial-gradient(circle at 100% 0, transparent 0 22px, var(--tile-line) 23px 24px, transparent 25px),
+    radial-gradient(circle at 0 100%, transparent 0 22px, var(--tile-line) 23px 24px, transparent 25px),
+    radial-gradient(circle at 100% 100%, transparent 0 22px, var(--tile-line) 23px 24px, transparent 25px),
     linear-gradient(var(--tile-line) 0 1px, transparent 1px),
     linear-gradient(90deg, var(--tile-line) 0 1px, transparent 1px);
   background-size: 64px 64px;
@@ -36,16 +43,18 @@ body {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
+body.paused * { animation-play-state: paused !important; }
 #app {
   height: 100%;
   max-width: 560px;
   margin: 0 auto;
   box-sizing: border-box;
-  padding: 12px max(16px, env(safe-area-inset-right, 0px)) 12px max(16px, env(safe-area-inset-left, 0px));
+  padding: 12px max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   display: flex;
   flex-direction: column;
 }
-.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 12px; }
+#app.wide { max-width: 980px; }
+.screen { flex: 1; display: flex; flex-direction: column; min-height: 0; gap: 10px; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
 button:focus-visible { outline: 3px solid var(--lemon); outline-offset: 2px; }
 
@@ -65,92 +74,222 @@ button:focus-visible { outline: 3px solid var(--lemon); outline-offset: 2px; }
   padding: 14px 26px;
   box-shadow: 0 5px 0 var(--lemon-deep), 0 8px 18px rgba(18, 48, 110, .18);
   transition: transform .08s, box-shadow .08s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
 }
 .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--lemon-deep); }
 .btn:disabled { opacity: .5; cursor: default; }
 .btn.blue { background: var(--cobalt); color: #fff; box-shadow: 0 5px 0 var(--cobalt-deep), 0 8px 18px rgba(18, 48, 110, .25); }
 .btn.blue:active { box-shadow: 0 1px 0 var(--cobalt-deep); }
 .btn.ghost { background: var(--card); box-shadow: 0 5px 0 var(--tile-line); font-size: 1.1rem; }
-.icon-btn {
-  width: 46px; height: 46px; border-radius: 14px; background: var(--card);
-  box-shadow: 0 4px 0 var(--tile-line); display: grid; place-items: center; flex: none;
+.ad-badge {
+  font-family: var(--body); font-weight: 900; font-size: .62rem; letter-spacing: .06em;
+  background: var(--cobalt); color: #fff; border-radius: 6px; padding: 2px 5px; line-height: 1.2;
 }
-.icon-btn svg { width: 26px; height: 26px; }
+.btn.blue .ad-badge { background: var(--lemon); color: var(--ink); }
+.icon-btn {
+  width: 44px; height: 44px; border-radius: 14px;
+  background: var(--card); border: 3px solid var(--cobalt);
+  display: grid; place-items: center; flex: none;
+  box-shadow: 0 3px 0 var(--cobalt);
+}
+.icon-btn:active { transform: translateY(3px); box-shadow: none; }
+.icon-btn svg { width: 24px; height: 24px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--card); border: 3px solid var(--cobalt); border-radius: 999px;
+  padding: 4px 14px; font-variant-numeric: tabular-nums; font-size: 1rem;
+}
+.pill svg { width: 20px; height: 20px; }
 
 /* ---------- Home ---------- */
-#home { align-items: center; text-align: center; }
-.home-top { width: 100%; display: flex; justify-content: flex-end; }
+#home { align-items: center; text-align: center; justify-content: center; gap: 14px; }
+.home-top { width: 100%; display: flex; justify-content: space-between; align-items: center; }
+.logo { display: grid; gap: 4px; justify-items: center; margin-top: 4px; }
 .logo-tile {
   background: var(--cobalt); border-radius: 28px; padding: 16px 26px 14px;
   border: 5px solid #fff; box-shadow: 0 0 0 4px var(--cobalt), 0 14px 30px rgba(18, 48, 110, .28);
   rotate: -2deg;
 }
-.logo-tile h1 {
+.logo h1 {
   font-family: var(--display); font-weight: 400; margin: 0;
-  font-size: clamp(2.4rem, 12vw, 3.4rem); line-height: .95;
+  font-size: clamp(2.5rem, 12.5vw, 3.6rem); line-height: .95;
   color: var(--lemon); text-shadow: 0 4px 0 var(--cobalt-deep);
 }
-.tagline { margin: 6px 0 0; font-size: 1rem; }
+.logo .sub { font-family: var(--display); color: #fff; font-size: 1.05rem; letter-spacing: .3em; text-transform: uppercase; }
+.hero { display: flex; gap: 3px; margin: 10px 0 0; }
+.hero svg { width: clamp(30px, 9vw, 40px); aspect-ratio: 1; height: auto; display: block; filter: drop-shadow(0 3px 0 rgba(18, 48, 110, .25)); }
+.hero svg:nth-child(even) { translate: 0 -7px; }
+.tagline { margin: 0; font-size: 1rem; }
 .how {
   background: var(--card); border-radius: 18px; border: 3px solid var(--tile-line);
   padding: 10px 14px; font-size: .95rem; line-height: 1.35; max-width: 34ch; font-weight: 700;
 }
 .how b { color: var(--cobalt); }
-#levelsWrap { flex: 1; min-height: 0; overflow-y: auto; width: 100%; padding: 4px 0 8px; }
-#levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 360px; margin: 0 auto; }
-.lv {
-  aspect-ratio: 1; border-radius: 14px; background: var(--card); box-shadow: 0 4px 0 var(--tile-line);
-  font-family: var(--display); font-size: 1.3rem; position: relative;
-}
-.lv.done { background: var(--cobalt); color: #fff; box-shadow: 0 4px 0 var(--cobalt-deep); }
-.lv:disabled { opacity: .45; cursor: default; }
-.lv .st { position: absolute; left: 0; right: 0; bottom: 3px; font-size: .55rem; color: var(--lemon); letter-spacing: 1px; }
+.home-btns { display: grid; gap: 14px; width: min(100%, 300px); }
 
 /* ---------- Game ---------- */
-.hud { display: flex; align-items: center; gap: 10px; }
-.hud-mid { flex: 1; display: grid; gap: 6px; }
-.hud-row { display: flex; justify-content: space-between; font-family: var(--display); font-size: 1.2rem; }
-.timebar { height: 12px; border-radius: 999px; background: var(--card); border: 3px solid var(--cobalt); overflow: hidden; }
-#timeFill { height: 100%; background: var(--lemon); transform-origin: left; transition: transform .1s linear; }
-#timeFill.low { background: var(--red); }
-#arena {
-  flex: 1; position: relative; border-radius: 24px; background: rgba(255, 255, 255, .7);
-  border: 4px solid var(--cobalt); box-shadow: inset 0 0 0 4px #fff; overflow: hidden; touch-action: none;
+.hud { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; }
+.score-box { text-align: center; line-height: 1; }
+#score { font-family: var(--display); font-size: 2.3rem; color: var(--cobalt); text-shadow: 0 3px 0 #fff; font-variant-numeric: tabular-nums; display: inline-block; }
+#score.bump { animation: bump .25s ease-out; }
+@keyframes bump { 50% { scale: 1.18; } }
+.best-line { font-size: .85rem; display: inline-flex; gap: 4px; align-items: center; color: var(--cobalt-deep); }
+.best-line svg { width: 16px; height: 16px; }
+
+#stage { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
+#app.wide #stage { flex-direction: row; gap: 24px; }
+.side { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+#boardWrap { position: relative; }
+#board {
+  display: grid; grid-template-columns: repeat(8, var(--cell)); grid-template-rows: repeat(8, var(--cell));
+  padding: 6px; gap: 0; border-radius: 18px;
+  background: var(--cobalt); border: 4px solid #fff;
+  box-shadow: 0 0 0 4px var(--cobalt), 0 12px 0 var(--cobalt-deep), 0 18px 30px rgba(18, 48, 110, .25);
+  touch-action: none;
 }
-#lemon {
-  --s: 1; position: absolute; width: calc(84px * var(--s)); height: calc(84px * var(--s));
-  translate: -50% -50%; transition: left .12s ease-out, top .12s ease-out; cursor: pointer;
+.cell { width: var(--cell); height: var(--cell); position: relative; }
+.cell::before {
+  content: ""; position: absolute; inset: 2px; border-radius: 6px;
+  background: #2a56ad; box-shadow: inset 0 2px 0 rgba(0, 0, 0, .18);
 }
-#lemon svg { width: 100%; height: 100%; filter: drop-shadow(0 5px 4px rgba(18, 48, 110, .25)); pointer-events: none; }
-#lemon.pop { animation: pop .18s ease-out; }
-@keyframes pop { 50% { scale: 1.2; } }
+.cell svg { position: absolute; inset: 1px; width: calc(100% - 2px); height: calc(100% - 2px); display: block; }
+.cell.pv::before { background: #6f8fd0; }
+.cell.pv svg { display: none; }
+.cell .ghost { opacity: .55; }
+.cell.line svg { filter: brightness(1.18) drop-shadow(0 0 4px #fff7c2); }
+.cell.line::after { content: ""; position: absolute; inset: 2px; border-radius: 6px; box-shadow: 0 0 0 2px var(--lemon); }
+.cell.pop svg { animation: tilePop .38s ease-in forwards; }
+@keyframes tilePop { 30% { scale: 1.15; } 100% { scale: 0; rotate: 40deg; opacity: 0; } }
+.cell.drop svg { animation: tileDrop .16s ease-out; }
+@keyframes tileDrop { from { scale: 1.12; } }
+
+.float {
+  position: absolute; left: 50%; top: 40%; translate: -50% -50%; pointer-events: none; white-space: nowrap;
+  font-family: var(--display); font-size: 2rem; color: var(--lemon); z-index: 5;
+  text-shadow: 0 3px 0 var(--cobalt-deep), 0 0 12px rgba(18, 48, 110, .6);
+  animation: floatUp 1.1s ease-out forwards;
+}
+.float.small { font-size: 1.4rem; color: #fff; }
+@keyframes floatUp { 0% { opacity: 0; scale: .6; } 15% { opacity: 1; scale: 1.1; } 70% { opacity: 1; } 100% { opacity: 0; transform: translateY(-40px); } }
+
+#tray { display: flex; gap: 10px; justify-content: center; }
+#app.traycol #tray, #app.traycol .boosters { flex-direction: column; }
+.slot {
+  width: calc(var(--tcell) * 5 + 12px); height: calc(var(--tcell) * 5 + 12px);
+  display: grid; place-items: center; position: relative;
+  background: rgba(255, 255, 255, .78); border: 3px solid var(--tile-line); border-radius: 18px;
+  touch-action: none; cursor: grab;
+}
+.slot.lift .piece { opacity: 0; }
+.slot.nofit .piece { opacity: .35; filter: grayscale(.8); }
+.slot .rot {
+  position: absolute; top: -8px; right: -8px; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--lemon); border: 3px solid #fff; display: grid; place-items: center;
+  box-shadow: 0 2px 0 var(--lemon-deep); pointer-events: none;
+}
+.slot .rot svg { width: 16px; height: 16px; }
+.piece { position: relative; pointer-events: none; transition: rotate .18s; }
+.piece svg { position: absolute; display: block; }
+.slot.spin .piece { animation: spinIn .22s ease-out; }
+@keyframes spinIn { from { rotate: -90deg; } }
+.slot.deal .piece { animation: dealIn .3s cubic-bezier(.2, 1.4, .4, 1) backwards; }
+.slot.deal:nth-child(2) .piece { animation-delay: .06s; }
+.slot.deal:nth-child(3) .piece { animation-delay: .12s; }
+@keyframes dealIn { from { scale: 0; } }
+
+#drag { position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none; filter: drop-shadow(0 8px 6px rgba(18, 48, 110, .35)); }
+#drag svg { position: absolute; display: block; }
+
+.boosters { display: flex; gap: 10px; justify-content: center; }
+.boost {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--card); border: 3px solid var(--cobalt); border-radius: 16px;
+  padding: 7px 12px; font-family: var(--display); font-size: 1rem; color: var(--cobalt);
+  box-shadow: 0 3px 0 var(--cobalt);
+}
+.boost svg { width: 20px; height: 20px; flex: none; }
+.boost:active { transform: translateY(3px); box-shadow: none; }
+.boost:disabled { opacity: .4; cursor: default; box-shadow: none; border-style: dashed; transform: none; }
+.boost.on, .boost.on:disabled { background: var(--lemon); border-color: var(--lemon-deep); box-shadow: 0 3px 0 var(--lemon-deep); border-style: solid; opacity: 1; color: var(--ink); }
 
 /* ---------- Overlays ---------- */
 .overlay { position: fixed; inset: 0; background: rgba(18, 48, 110, .55); display: grid; place-items: center; padding: 16px; z-index: 10; }
 .panel {
-  background: var(--card); border-radius: 26px; padding: 22px 20px; text-align: center;
-  max-width: 340px; width: 100%; box-shadow: 0 0 0 5px var(--cobalt), 0 20px 40px rgba(0, 0, 0, .25);
+  width: min(100%, 360px); box-sizing: border-box;
+  background: var(--card); border-radius: 26px; border: 5px solid var(--cobalt);
+  padding: 22px 18px 20px; display: grid; gap: 12px; justify-items: center; text-align: center;
+  box-shadow: 0 14px 0 var(--cobalt-deep);
+  animation: panelIn .35s cubic-bezier(.2, 1.4, .4, 1);
 }
-.panel h2 { font-family: var(--display); font-weight: 400; font-size: 2.2rem; margin: 0 0 6px; color: var(--cobalt); }
-.panel p { font-weight: 700; line-height: 1.35; margin: 0 0 14px; }
-.stars { font-size: 2.4rem; color: var(--lemon); letter-spacing: 4px; margin-bottom: 14px; text-shadow: 0 3px 0 var(--lemon-deep); }
-.row { display: flex; flex-direction: column; gap: 12px; }
+@keyframes panelIn { from { scale: .7; opacity: 0; } }
+.panel h2 { font-family: var(--display); font-weight: 400; font-size: 2.1rem; margin: 0; color: var(--cobalt); line-height: 1.05; }
+.panel p { font-weight: 700; line-height: 1.35; margin: 0; }
+.final { font-family: var(--display); font-size: 3rem; color: var(--ink); line-height: 1; }
+.record { font-family: var(--display); background: var(--lemon); color: var(--ink); border-radius: 999px; padding: 4px 16px; rotate: -3deg; box-shadow: 0 3px 0 var(--lemon-deep); }
+.row { display: grid; gap: 12px; width: 100%; }
+.row .btn { width: 100%; box-sizing: border-box; }
 </style>
 <!--BODY-->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <radialGradient id="g-lemon" cx=".38" cy=".32" r=".75">
-      <stop offset="0" stop-color="#fff6a8"/><stop offset=".5" stop-color="#f5c518"/><stop offset="1" stop-color="#c99200"/>
-    </radialGradient>
-    <symbol id="lemon-art" viewBox="0 0 64 64">
-      <path d="M8 34c0-13 11-22 24-22s24 9 24 22-11 20-24 20S8 47 8 34z" fill="url(#g-lemon)" stroke="#a87800" stroke-width="2"/>
-      <path d="M5 34c2-1 3-2 4-4M59 34c-2-1-3-2-4-4" stroke="#a87800" stroke-width="3" stroke-linecap="round"/>
-      <path d="M32 12c2-5 7-7 12-6-2 5-7 7-12 6z" fill="#4c9a3a"/>
-      <ellipse cx="23" cy="25" rx="6" ry="3" fill="#fff" opacity=".55" transform="rotate(-25 23 25)"/>
+    <!-- Maiolica tiles, 40×40. Each: coloured frame, cream glaze, a hand-painted motif. -->
+    <symbol id="t1" viewBox="0 0 40 40"><!-- cobalt flower -->
+      <rect x="1" y="1" width="38" height="38" rx="7" fill="#1d4596"/><rect x="4" y="4" width="32" height="32" rx="4" fill="#fdf6e3"/>
+      <path d="M4 12a8 8 0 0 0 8-8H8a4 4 0 0 1-4 4zM36 12a8 8 0 0 1-8-8h4a4 4 0 0 0 4 4zM4 28a8 8 0 0 1 8 8H8a4 4 0 0 0-4-4zM36 28a8 8 0 0 0-8 8h4a4 4 0 0 1 4-4z" fill="#1d4596"/>
+      <g fill="#1d4596"><ellipse cx="20" cy="12.5" rx="4" ry="6"/><ellipse cx="20" cy="27.5" rx="4" ry="6"/><ellipse cx="12.5" cy="20" rx="6" ry="4"/><ellipse cx="27.5" cy="20" rx="6" ry="4"/></g>
+      <circle cx="20" cy="20" r="4" fill="#f5c518" stroke="#fdf6e3" stroke-width="1.5"/>
+      <path d="M1 30v2a7 7 0 0 0 7 7h24a7 7 0 0 0 7-7v-2" fill="none" stroke="#0d2459" stroke-opacity=".35" stroke-width="2"/>
     </symbol>
+    <symbol id="t2" viewBox="0 0 40 40"><!-- lemon -->
+      <rect x="1" y="1" width="38" height="38" rx="7" fill="#f5c518"/><rect x="4" y="4" width="32" height="32" rx="4" fill="#fdf6e3"/>
+      <path d="M4 4h8L4 12zM36 4h-8l8 8zM4 36h8l-8-8zM36 36h-8l8-8z" fill="#1d4596"/>
+      <path d="M11 22c0-6 4-10 9-10s9 4 9 10-4 8-9 8-9-2-9-8z" fill="#f5c518" stroke="#c99200" stroke-width="1.6"/>
+      <path d="M20 12c1-3 4-5 8-4-1 3-4 5-8 4z" fill="#2f9e6e"/>
+      <ellipse cx="16.5" cy="18.5" rx="2.6" ry="1.4" fill="#fff" opacity=".7" transform="rotate(-30 16.5 18.5)"/>
+      <path d="M1 30v2a7 7 0 0 0 7 7h24a7 7 0 0 0 7-7v-2" fill="none" stroke="#8a6500" stroke-opacity=".35" stroke-width="2"/>
+    </symbol>
+    <symbol id="t3" viewBox="0 0 40 40"><!-- green leaves -->
+      <rect x="1" y="1" width="38" height="38" rx="7" fill="#2f9e6e"/><rect x="4" y="4" width="32" height="32" rx="4" fill="#fdf6e3"/>
+      <g fill="#2f9e6e"><path d="M20 20C15 15 15 9 20 5c5 4 5 10 0 15z"/><path d="M20 20c-5 5-5 11 0 15 5-4 5-10 0-15z"/><path d="M20 20c-5-5-11-5-15 0 4 5 10 5 15 0z"/><path d="M20 20c5-5 11-5 15 0-4 5-10 5-15 0z"/></g>
+      <circle cx="20" cy="20" r="3.4" fill="#1d4596"/>
+      <g fill="#1d4596"><circle cx="9" cy="9" r="1.8"/><circle cx="31" cy="9" r="1.8"/><circle cx="9" cy="31" r="1.8"/><circle cx="31" cy="31" r="1.8"/></g>
+      <path d="M1 30v2a7 7 0 0 0 7 7h24a7 7 0 0 0 7-7v-2" fill="none" stroke="#0e5a3b" stroke-opacity=".35" stroke-width="2"/>
+    </symbol>
+    <symbol id="t4" viewBox="0 0 40 40"><!-- orange sun -->
+      <rect x="1" y="1" width="38" height="38" rx="7" fill="#e8772e"/><rect x="4" y="4" width="32" height="32" rx="4" fill="#fdf6e3"/>
+      <path d="M20 6l2.5 6.5L29 9l-2.5 6.5L33 18l-6.5 2.5L29 27l-6.5-2.5L20 31l-2.5-6.5L11 27l2.5-6.5L7 18l6.5-2.5L11 9l6.5 3.5z" fill="#e8772e"/>
+      <circle cx="20" cy="18.5" r="5" fill="#f5c518"/><circle cx="20" cy="18.5" r="2" fill="#1d4596"/>
+      <path d="M8 34h24" stroke="#1d4596" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 4"/>
+      <path d="M1 30v2a7 7 0 0 0 7 7h24a7 7 0 0 0 7-7v-2" fill="none" stroke="#8a3d0c" stroke-opacity=".35" stroke-width="2"/>
+    </symbol>
+    <symbol id="t5" viewBox="0 0 40 40"><!-- turquoise diamond -->
+      <rect x="1" y="1" width="38" height="38" rx="7" fill="#1fa3b5"/><rect x="4" y="4" width="32" height="32" rx="4" fill="#fdf6e3"/>
+      <path d="M20 6l14 14-14 14L6 20z" fill="#1fa3b5"/><path d="M20 12l8 8-8 8-8-8z" fill="#fdf6e3"/>
+      <path d="M20 15.5l4.5 4.5-4.5 4.5-4.5-4.5z" fill="#1d4596"/>
+      <g fill="#f5c518"><circle cx="8.5" cy="8.5" r="2"/><circle cx="31.5" cy="8.5" r="2"/><circle cx="8.5" cy="31.5" r="2"/><circle cx="31.5" cy="31.5" r="2"/></g>
+      <path d="M1 30v2a7 7 0 0 0 7 7h24a7 7 0 0 0 7-7v-2" fill="none" stroke="#0b5862" stroke-opacity=".35" stroke-width="2"/>
+    </symbol>
+    <symbol id="t6" viewBox="0 0 40 40"><!-- red quatrefoil -->
+      <rect x="1" y="1" width="38" height="38" rx="7" fill="#d7263d"/><rect x="4" y="4" width="32" height="32" rx="4" fill="#fdf6e3"/>
+      <g fill="#d7263d"><circle cx="20" cy="12" r="6"/><circle cx="20" cy="28" r="6"/><circle cx="12" cy="20" r="6"/><circle cx="28" cy="20" r="6"/></g>
+      <circle cx="20" cy="20" r="5.5" fill="#fdf6e3"/><circle cx="20" cy="20" r="3" fill="#f5c518"/>
+      <path d="M4 10L10 4M30 4l6 6M4 30l6 6M36 30l-6 6" stroke="#1d4596" stroke-width="2.4" stroke-linecap="round"/>
+      <path d="M1 30v2a7 7 0 0 0 7 7h24a7 7 0 0 0 7-7v-2" fill="none" stroke="#7a0f1e" stroke-opacity=".35" stroke-width="2"/>
+    </symbol>
+    <symbol id="t7" viewBox="0 0 40 40"><!-- purple star -->
+      <rect x="1" y="1" width="38" height="38" rx="7" fill="#6b4fa0"/><rect x="4" y="4" width="32" height="32" rx="4" fill="#fdf6e3"/>
+      <path d="M20 5l3.4 8.2L32 10l-3.2 8.6L36 20l-7.2 1.4L32 30l-8.6-3.2L20 35l-3.4-8.2L8 30l3.2-8.6L4 20l7.2-1.4L8 10l8.6 3.2z" fill="#6b4fa0"/>
+      <circle cx="20" cy="20" r="5" fill="#fdf6e3"/><circle cx="20" cy="20" r="2.6" fill="#1fa3b5"/>
+      <path d="M1 30v2a7 7 0 0 0 7 7h24a7 7 0 0 0 7-7v-2" fill="none" stroke="#3a2563" stroke-opacity=".35" stroke-width="2"/>
+    </symbol>
+
     <symbol id="ic-home" viewBox="0 0 24 24"><path d="M3 11 12 3l9 8M5 9.5V21h5v-6h4v6h5V9.5" fill="none" stroke="#1d4596" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
     <symbol id="ic-sound" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="#1d4596"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="#1d4596" stroke-width="2.4" stroke-linecap="round"/></symbol>
     <symbol id="ic-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z" fill="#1d4596"/><path d="M16 9l6 6M22 9l-6 6" fill="none" stroke="#1d4596" stroke-width="2.4" stroke-linecap="round"/></symbol>
+    <symbol id="ic-crown" viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z" fill="#f5c518" stroke="#b48600" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-rotate" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 3v5h-5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="ic-fresh" viewBox="0 0 24 24"><rect x="2.5" y="11" width="8" height="8" rx="2" fill="currentColor"/><rect x="13.5" y="11" width="8" height="8" rx="2" fill="currentColor" opacity=".55"/><path d="M6.5 8V5h11v3M15 7.5l2.5 2.5L20 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   </defs>
 </svg>
 
@@ -158,46 +297,59 @@ button:focus-visible { outline: 3px solid var(--lemon); outline-offset: 2px; }
 <div id="app" hidden>
   <section id="home" class="screen">
     <div class="home-top">
+      <span class="pill"><svg><use href="#ic-crown"/></svg><span id="homeBest">0</span></span>
       <button class="icon-btn" id="soundBtn" type="button" data-ta="soundToggle"></button>
     </div>
-    <div class="logo-tile"><h1>Tap the Lemon</h1></div>
+    <div class="logo">
+      <div class="logo-tile"><h1>Maiolica</h1><div class="sub">Blocks</div></div>
+    </div>
+    <div class="hero" aria-hidden="true">
+      <svg><use href="#t1"/></svg><svg><use href="#t2"/></svg><svg><use href="#t3"/></svg><svg><use href="#t4"/></svg>
+      <svg><use href="#t5"/></svg><svg><use href="#t6"/></svg><svg><use href="#t7"/></svg>
+    </div>
     <p class="tagline" data-t="tagline"></p>
     <div class="how" data-th="how"></div>
-    <button class="btn blue" id="playBtn" type="button">Play</button>
-    <div id="levelsWrap"><div id="levels"></div></div>
+    <div class="home-btns">
+      <button class="btn blue" id="resumeBtn" type="button" data-t="resume" hidden></button>
+      <button class="btn" id="playBtn" type="button" data-t="play"></button>
+    </div>
   </section>
 
   <section id="game" class="screen" hidden>
     <div class="hud">
       <button class="icon-btn" id="homeBtn" type="button" data-ta="home"><svg><use href="#ic-home"/></svg></button>
-      <div class="hud-mid">
-        <div class="hud-row"><span id="hudLevel">Level 1</span><span id="hudHits">0 / 0</span></div>
-        <div class="timebar"><div id="timeFill"></div></div>
+      <div class="score-box">
+        <div id="score" aria-live="polite">0</div>
+        <div class="best-line"><svg><use href="#ic-crown"/></svg><span id="best">0</span></div>
       </div>
       <button class="icon-btn" id="soundBtn2" type="button" data-ta="soundToggle"></button>
     </div>
-    <div id="arena"><div id="lemon"><svg><use href="#lemon-art"/></svg></div></div>
+    <div id="stage">
+      <div id="boardWrap"><div id="board" role="grid" data-ta="board"></div></div>
+      <div class="side">
+        <div id="tray">
+          <div class="slot" data-i="0"></div><div class="slot" data-i="1"></div><div class="slot" data-i="2"></div>
+        </div>
+        <div class="boosters">
+          <button class="boost" id="rotBtn" type="button"><svg><use href="#ic-rotate"/></svg><span data-t="rotate"></span><span class="ad-badge" data-t="ad"></span></button>
+          <button class="boost" id="freshBtn" type="button"><svg><use href="#ic-fresh"/></svg><span data-t="fresh"></span><span class="ad-badge" data-t="ad"></span></button>
+        </div>
+      </div>
+    </div>
   </section>
 </div>
+<div id="drag" hidden></div>
 
-<div class="overlay" id="winOv" hidden>
-  <div class="panel">
-    <h2 id="winTitle">Perfect!</h2>
-    <div class="stars" id="winStars">★★★</div>
+<div class="overlay" id="overOv" hidden>
+  <div class="panel" role="dialog" aria-labelledby="overTitle">
+    <h2 id="overTitle" data-t="gameOver"></h2>
+    <div class="final" id="finalScore">0</div>
+    <div class="record" id="newBest" data-t="newBest" hidden></div>
+    <p id="overText"></p>
     <div class="row">
-      <button class="btn blue" id="winNext" type="button">Next level</button>
-      <button class="btn ghost" id="winHome" type="button" data-t="menu"></button>
-    </div>
-  </div>
-</div>
-
-<div class="overlay" id="loseOv" hidden>
-  <div class="panel">
-    <h2 data-t="timeUp">Time's up!</h2>
-    <p id="loseText"></p>
-    <div class="row">
-      <button class="btn" id="loseMore" type="button" data-t="moreTime"></button>
-      <button class="btn ghost" id="loseRetry" type="button" data-t="retry"></button>
+      <button class="btn blue" id="contBtn" type="button"><span data-t="cont"></span><span class="ad-badge" data-t="ad"></span></button>
+      <button class="btn" id="againBtn" type="button" data-t="again"></button>
+      <button class="btn ghost" id="menuBtn" type="button" data-t="menu"></button>
     </div>
   </div>
 </div>
