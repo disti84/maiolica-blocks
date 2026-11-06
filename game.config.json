@@ -1,0 +1,10 @@
+{
+  "slug": "tap-the-lemon",
+  "title": "Tap the Lemon",
+  "version": "1.0.0",
+  "themeColor": "#1d4596",
+  "fonts": [
+    { "package": "lilita-one", "family": "Lilita One", "weights": ["400"] },
+    { "package": "nunito", "family": "Nunito", "weights": ["600", "800"] }
+  ]
+}

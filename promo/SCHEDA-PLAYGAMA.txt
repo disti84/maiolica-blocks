@@ -1,0 +1,69 @@
+NOME DEL GIOCO — testi e dati per il modulo di Playgama
+(developer.playgama.com → nuovo gioco). I testi da incollare sono in inglese;
+le traduzioni italiane sono sotto, se il modulo le chiede.
+
+────────────────────────────────────────
+CAMPI OBBLIGATORI
+────────────────────────────────────────
+Title
+<titolo>
+
+Game Engine
+JavaScript / HTML5 (nessun motore; se non c'è la voce, scegli "JavaScript" o "Other")
+
+Game Archive
+build/<slug>-playgama.zip  (index.html è nella radice dello zip)
+
+Description  (EN)
+<2–4 frasi: ambientazione, meccanica principale, cosa c'è (livelli, booster, stelle)>
+
+How to play  (EN)
+<controlli mouse e touch, obiettivo, cosa fare quando si è bloccati>
+
+Supported Devices
+Desktop (mouse) e Mobile/Tablet (touch). Browser: Chrome, Firefox, Safari, Edge, Opera.
+
+Game Languages
+English, Italian
+
+Distribution
+Playgama + tutti i partner (non escludere nulla, a meno che tu non abbia motivi).
+
+────────────────────────────────────────
+CAMPI FACOLTATIVI
+────────────────────────────────────────
+Screen Orientation
+Entrambe (portrait e landscape)
+
+Game Features
+Interstitial ads, Rewarded ads, Cloud saves (Bridge storage), Localization,
+Progress saving, Pause/audio handling.
+
+Category / Genre
+<categoria>  (tag: ...)
+
+Media (cartella promo/)
+- cover-square-800x800.png        → copertina quadrata
+- cover-portrait-1080x1920.png    → copertina verticale
+- cover-landscape-1920x1080.png   → copertina orizzontale
+- screenshot-portrait-*.png       → 3 screenshot telefono (1080x1920)
+- screenshot-landscape-*.png      → 3 screenshot desktop (1920x1080)
+
+────────────────────────────────────────
+TRADUZIONI ITALIANE
+────────────────────────────────────────
+Descrizione
+<...>
+
+Come si gioca
+<...>
+
+────────────────────────────────────────
+PROVENIENZA DEI MATERIALI (se ti chiedono i diritti)
+────────────────────────────────────────
+- Codice di gioco e livelli: sviluppati per questo gioco.
+- Grafica: <...>
+- Effetti sonori: <fonte> — <licenza>
+- Musica: <fonte> — <licenza>
+- Font: <nomi> — SIL Open Font License, inclusi nel pacchetto.
+- SDK: Playgama Bridge 2.4.0.

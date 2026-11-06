@@ -1,0 +1,12 @@
+{
+  "name": "game-vendor",
+  "version": "1.0.0",
+  "description": "Third-party files bundled into the Playgama build (Bridge SDK, fonts)",
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "@fontsource/lilita-one": "5.3.0",
+    "@fontsource/nunito": "5.3.0",
+    "@playgama/bridge": "2.4.0"
+  }
+}
